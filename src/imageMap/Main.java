@@ -4,30 +4,41 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.event.*;
 
 import javax.swing.JFrame;
 
+@SuppressWarnings("serial")
 public class Main extends JFrame implements ActionListener, WindowListener,
 		ClipboardOwner, ComponentListener, KeyListener {
 
 	public Main(String title) throws HeadlessException {
 		super(title);
-		buildWindow();
+		mainWindow();
 	}
 
-	private void buildWindow() {
+	private void mainWindow() {
+		createMenuBar();
+		createToolBar();
+		
+	}
+
+	private void createToolBar() {
 		// TODO Auto-generated method stub
 		
 	}
 
+	private void createMenuBar() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
+	
+	
+	
+	
+	
 	@Override
 	public void keyPressed(KeyEvent e) {
 		// TODO Auto-generated method stub
@@ -120,8 +131,15 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
 		
+		
+	}
+	
+	public static void main(String[] args) {
+		Main window = new Main("Der Image Map Editor 2015");
+		window.setBounds(0, 0, 700, 800);
+		window.setVisible(true);
+		window.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 	}
 
 }
