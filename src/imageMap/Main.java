@@ -24,6 +24,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
@@ -56,6 +58,12 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 	private JToolBar pixel = new JToolBar(JToolBar.HORIZONTAL);
 	private JLabel pixelStandpunkt = new JLabel("");
 	
+	//Switchbar
+	private JTabbedPane switchbar = new JTabbedPane();
+	private Zeichenfläche zeichenfläche = new Zeichenfläche(this);
+	private JTextArea htmlcode = new JTextArea(10, 20);
+	
+	
 
 	/**
 	 * Konstruktor
@@ -72,6 +80,7 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 	private void mainWindow() {
 		createMenuBar();
 		createToolBar();
+		createSwitchBar();
 		
 	}
 	
@@ -141,13 +150,20 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 		
 	}
 	
+	private void createSwitchBar() {
+		switchbar.addTab("Bildbearbeitung", null, zeichenfläche, "Bild bearbeiten");
+		switchbar.addTab("HTML-TAG", null, htmlcode, "HTML Code anzeigen");
+		add(switchbar);
+	}
+
+	
 	/**
 	 * pixelStandort Koordinaten Ermittlung
 	 * 
 	 * @param location Es wird ein Objekt von Typ Location erzeugt
 	 */
 	public void setMousePixel(String location) {
-		mousePixel.setText(location);
+		pixelStandpunkt.setText(location);
 	}
 
 
@@ -213,9 +229,13 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 	}
 
 	@Override
-	public void windowClosing(WindowEvent e) {
-		// TODO Auto-generated method stub
-		
+	public void windowClosing(WindowEvent e) {	
+		//Fenster schließen über disponse Methode
+			int tmp;
+			tmp = JOptionPane.showConfirmDialog(this, "Wollen sie das Programm beenden?", "Programm Beenden", 0, 3);
+			if (tmp == 0) {
+				dispose();
+			}			
 	}
 
 	@Override
