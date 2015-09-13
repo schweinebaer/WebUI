@@ -30,6 +30,7 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 
+
 @SuppressWarnings("serial")
 public class Main extends JFrame implements ActionListener, WindowListener,
 		ClipboardOwner, ComponentListener, KeyListener {
@@ -61,7 +62,7 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 	//Switchbar
 	private JTabbedPane switchbar = new JTabbedPane();
 	private Zeichenfläche zeichenfläche = new Zeichenfläche(this);
-	private JTextArea htmlcode = new JTextArea(10, 20);
+	private static JTextArea htmlcode = new JTextArea(10, 20);
 	
 	
 
@@ -262,7 +263,12 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 		
 	}
 
-	@Override
+	/**
+	 * Handelt die Actions auf der Menüleiste
+	 * Zeiger, Kreis, Menü, Hilfe, etc.
+	 * 
+	 * @param ActionEvent e Auführung in Menüleiste
+	 */
 	public void actionPerformed(ActionEvent e) {
 		Object src = e.getSource();
 		
@@ -275,6 +281,24 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 			}
 		}
 		
+		if (src == auswahlButton) {
+			zeichenfläche.doSomething(Zeichenfläche.auswahl);
+		}
+		
+		if (src == rechteckButton) {
+			zeichenfläche.doSomething(Zeichenfläche.rechteck);
+		}
+		
+		if (src == kreisButton) {
+			zeichenfläche.doSomething(Zeichenfläche.kreis);
+		}
+		
+		if (src == mehreckButton) {
+			zeichenfläche.doSomething(Zeichenfläche.mehreck);
+		}
+		
+		
+		
 		
 	}
 	
@@ -283,6 +307,11 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 		window.setBounds(0, 0, 700, 800);
 		window.setVisible(true);
 		window.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE); //für Abfrage nach "Sind Sie sicher?"
+	}
+
+	public static void setHtmlTextArea(String s) {
+		htmlcode.setText(s);
+		
 	}
 
 }
