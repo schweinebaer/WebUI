@@ -28,6 +28,9 @@ public class Form {
 	}
 
 	
+	public void setHref(String href) {
+		this.href = href;	
+	}
 	public String getHref() {
 		return href;
 	}
@@ -87,13 +90,5 @@ public class Form {
 	public void setRatioY(double ratioY) {
 		this.ratioY = ratioY;
 		
-	}
-
-
-
-
-
-
-	
-	
+	}	
 }

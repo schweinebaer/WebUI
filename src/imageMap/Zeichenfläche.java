@@ -14,9 +14,17 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Vector;
 
+import javax.imageio.ImageIO;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 
 
 public class Zeichenfläche extends JPanel implements MouseListener, ActionListener,
@@ -32,12 +40,13 @@ MouseMotionListener {
 	
 	//Bild
 	private BufferedImage bild;
-	private double factorW = 0;
-	private double factorH = 0;
+	private double faktorW = 0;
+	private double faktorH = 0;
 	
 	private Main main = null;
 	
 	private Form currentForm;
+	private Form urlForm;
 	
 	// für Rectangle
 	private Point startPoint;
@@ -46,15 +55,20 @@ MouseMotionListener {
 	private Vector<Form> vec = new Vector<Form>();
 	
 	//img tag Aufbereitung
-	private String start = "<img src=\"";
-	private final String mapAuf = "<map name=MAPNAME>";
-	private final String mapZu = "</map>";
+	private String htmlTagAuf ="<html>" + "\n" + "<head>" + "\n" + "</head>" + "\n" + "<body>" + "\n";
+	private String start = "<img src=\"\">";
+	private final String mapAuf = "<map name=hiddekuddi>";
+	private final String mapZu = "</map>"+ "\n";
+	private String htmlTagZu ="</body>" + "\n" + "</html>";
 	
 	private Color globalColor = Color.BLACK;
 	
 	//Stroke
-	private BasicStroke stroke = new BasicStroke(1.0f, BasicStroke.CAP_BUTT,
-			BasicStroke.JOIN_MITER, 1.0f, new float[] { 1.0f, 1.0f }, 0.0f);
+	private BasicStroke stroke = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.0f, new float[] { 1.0f, 1.0f }, 0.0f);
+	
+	//Popup für URL
+	private JPopupMenu popup = new JPopupMenu();
+	private JMenuItem url = new JMenuItem("Bitte URL eingeben");
 	
 	
 	
@@ -62,40 +76,53 @@ MouseMotionListener {
 		this.main = main;
 		addMouseListener(this);
 		addMouseMotionListener(this);
+		
+		createPopup();			
 	}
 	
+	/**
+	 * Popup und Add an Action Listener 
+	 */
+	private void createPopup() {
+		popup.add(url);
+		url.addActionListener(this);		
+	}
+
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 
-		Graphics2D gr = (Graphics2D) g;
+		Graphics2D graphic = (Graphics2D) g;
 		
 		g.drawImage(bild, 0, 0, getWidth(), getHeight(), this);
 
-		String part3 = "";
+		String area = "";
 
 		if (vec.isEmpty()) {
-			String endString = start + "\n" + mapAuf + "\n" + part3 + mapZu;
-			Main.setHtmlTextArea(endString);
+			String fertigerHttp = htmlTagAuf + start + "\n" + mapAuf + "\n" + area + mapZu + htmlTagZu;
+			Main.setHtmlTextArea(fertigerHttp);
 
 		} else {
 			for (int i = 0; i < vec.size(); i++) {
 				Form f = vec.get(i);
 
-				String tmp2 = "";
+				String url = "";
 				if (!(f.getHref().equals(null))) {
-					tmp2 = f.getHref();
+					url = f.getHref();
 				}
+				
 				int x;
 				int y;
 				int width;
 				int height;
 
-				gr.setColor(f.getC());
+				//graphic.setColor(f.getC());
 
 				switch (f.getType()) {
+				
+				//Rechteck
 				case rechteck:
 					Rectangle r1 = f.getR();
-					gr.drawRect(r1.x, r1.y, r1.width, r1.height);
+					graphic.drawRect(r1.x, r1.y, r1.width, r1.height);
 
 					x = r1.x;
 					y = r1.y;
@@ -103,146 +130,137 @@ MouseMotionListener {
 					height = r1.y + r1.height;
 
 					if (!(bild == null)) {
-						calcFac();
+						bildFaktor();
 
 						if (bild.getWidth() > getWidth()) {
-							x = (int) (x * factorW);
-							width = (int) (width * factorW);
+							x = (int) (x * faktorW);
+							width = (int) (width * faktorW);
 						} else {
-							x = (int) (x / factorW);
-							width = (int) (width / factorW);
+							x = (int) (x / faktorW);
+							width = (int) (width / faktorW);
 						}
 
 						if (bild.getHeight() > getHeight()) {
-							y = (int) (y * factorH);
-							height = (int) (height * factorH);
+							y = (int) (y * faktorH);
+							height = (int) (height * faktorH);
 						} else {
-							y = (int) (y / factorH);
-							height = (int) (height / factorH);
+							y = (int) (y / faktorH);
+							height = (int) (height / faktorH);
 						}
 
 					}
 
 					String tmp = x + "," + y + "," + width + "," + height;
-					part3 = part3 + "<area form=rect coords=\"" + tmp
-							+ "\" href=\"" + tmp2 + "\" alt=\"Text\">\n";
+					area = area + "<area shape=\"rect\" coords=\"" + tmp + "\" href=\"" + url + "\" alt=\"Text\">\n";
 					break;
-
-				case kreis:
+				
+					//Kreis
+					case kreis:
 					Rectangle r2 = f.getR();
-					gr.drawOval(r2.x, r2.y, r2.width, r2.width);
+					graphic.drawOval(r2.x, r2.y, r2.width, r2.width);
 
 					int radius = r2.width / 2;
 					x = r2.x + radius;
 					y = r2.y + radius;
 
 					if (!(bild == null)) {
-						calcFac();
+						bildFaktor();
 
 						if (bild.getWidth() > getWidth()) {
-							x = (int) (x * factorW);
-							radius = (int) (radius * factorW);
+							x = (int) (x * faktorW);
+							radius = (int) (radius * faktorW);
 						} else {
-							x = (int) (x / factorW);
-							radius = (int) (radius / factorW);
+							x = (int) (x / faktorW);
+							radius = (int) (radius / faktorW);
 						}
 
 						if (bild.getHeight() > getHeight()) {
-							y = (int) (y * factorH);
+							y = (int) (y * faktorH);
 						} else {
-							y = (int) (y / factorH);
+							y = (int) (y / faktorH);
 						}
 
 					}
 
 					String tmp1 = x + "," + y + "," + radius;
-					part3 = part3 + "<area form=circle coords=\"" + tmp1
-							+ "\" href=\"" + tmp2 + "\" alt=\"Text\">\n";
-					break;
-
-				case mehreck:
-					Polygon p = f.getP();
-					gr.drawPolygon(p);
-
-					String tmp3 = "";
-
-					if (!(bild == null)) {
-						calcFac();
-
-						for (int j = 0; j < p.xpoints.length; j++) {
-							x = p.xpoints[j];
-							y = p.ypoints[j];
-
-							if (bild.getWidth() > getWidth()) {
-								x = (int) (x * factorW);
-							} else {
-								x = (int) (x / factorW);
-							}
-
-							if (bild.getHeight() > getHeight()) {
-								y = (int) (y * factorH);
-							} else {
-								y = (int) (y / factorH);
-							}
-
-							if (j == p.xpoints.length - 1) {
-								tmp3 = tmp3 + x + "," + y;
-							} else {
-								tmp3 = tmp3 + x + "," + y + ",";
-							}
-						}
-					} else {
-						for (int j = 0; j < p.xpoints.length; j++) {
-							if (j == p.xpoints.length - 1) {
-								tmp3 = tmp3 + p.xpoints[j] + "," + p.ypoints[j];
-							} else {
-								tmp3 = tmp3 + p.xpoints[j] + "," + p.ypoints[j]
-										+ ",";
-							}
-						}
-					}
-					part3 = part3 + "<area form=poly coords=\"" + tmp3
-							+ "\" href=\"" + tmp2 + "\" alt=\"Text\">\n";
+					area = area + "<area shape=\"circle\" coords=\"" + tmp1 + "\" href=\"" + url + "\" alt=\"Text\">\n";
 					break;
 				}
-				String endString = start + "\n" + mapAuf + "\n" + part3 + mapZu;
-				Main.setHtmlTextArea(endString);
+				String fertigerHttp = htmlTagAuf + start + "\n" + mapAuf + "\n" + area + mapZu + htmlTagZu;
+				Main.setHtmlTextArea(fertigerHttp);
 			}
 		}
 
 		if ((something == rechteck || something == kreis) && startPoint != null
 				&& endPoint != null) { 
-			Rectangle r = calcRect();
-			gr.setColor(Color.RED);
-			gr.setStroke(stroke);
+			Rectangle r = calcRechteckKreis();
+			graphic.setColor(Color.RED);
+			graphic.setStroke(stroke);
 
 			switch (something) {
 			case rechteck:
-				gr.drawRect(r.x, r.y, r.width, r.height);
+				graphic.drawRect(r.x, r.y, r.width, r.height);
 				break;
 			case kreis:
-				gr.drawOval(r.x, r.y, r.width, r.width);
+				graphic.drawOval(r.x, r.y, r.width, r.width);
 				break;
 			}
 		}
 	}
 	
 	
-	private void calcFac() {
+	private void bildFaktor() {
+		
 		if (bild.getWidth() > getWidth()) {
-			factorW = (bild.getWidth() + 0.0) / getWidth();
+			faktorW = (bild.getWidth() + 0.0) / getWidth();
 		} else {
-			factorW = (getWidth() + 0.0) / bild.getWidth();
+			faktorW = (getWidth() + 0.0) / bild.getWidth();
 		}
 
 		if (bild.getHeight() > getHeight()) {
-			factorH = (bild.getHeight() + 0.0) / getHeight();
+			faktorH = (bild.getHeight() + 0.0) / getHeight();
 		} else {
-			factorH = (getHeight() + 0.0) / bild.getHeight();
+			faktorH = (getHeight() + 0.0) / bild.getHeight();
 		}
 		
 	}
+	
+	/**
+	 * Start Point bei Mausklick festlegen 
+	 */
+	@Override
+	public void mousePressed(MouseEvent e) {
+		int button = e.getButton();
+		startPoint = e.getPoint();
+		
+		if (button == MouseEvent.BUTTON3) {
+			urlForm = null;
+			for (int i = vec.size() - 1; i >= 0; i--) {
+				Form f = vec.get(i);
 
+				switch (f.getType()) {
+				case rechteck:
+					Rectangle r = f.getR();
+					if (r.contains(startPoint)) {
+						urlForm = f;
+					}
+					break;
+
+				case kreis:
+					Rectangle r2 = f.getR();
+					if (r2.contains(startPoint)) {
+						urlForm = f;
+					}
+					break;
+				}
+			}
+			popup.show(this, e.getX(), e.getY());
+		}
+	}
+	
+	/**
+	 * End Point bei Maus loslassen festlegen 
+	 */
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		endPoint = e.getPoint();
@@ -279,26 +297,9 @@ MouseMotionListener {
 				currentForm.setRatioX((getWidth() + 0.0) / r.x);
 				currentForm.setRatioY((getHeight() + 0.0) / r.y);
 				break;
-
-			case mehreck:
-				Polygon p = currentForm.getP();
-				offX = endPoint.x - startPoint.x;
-				offY = endPoint.y - startPoint.y;
-				startPoint = endPoint;
-
-				for (int i = 0; i < p.xpoints.length; i++) {
-					p.xpoints[i] = p.xpoints[i] + offX;
-					p.ypoints[i] = p.ypoints[i] + offY;
-				}
-				p.invalidate();
-				vec.remove(currentForm);
-				currentForm.setP(p);
-				vec.add(currentForm);
-				break;
 			}
 		}
-		repaint();
-		
+		repaint();		
 	}
 
 	@Override
@@ -315,43 +316,36 @@ MouseMotionListener {
 	}
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
+		Object src = e.getSource();
 		
+		if (src == url) {
+			if (!(urlForm == null)) {
+				String s = JOptionPane.showInputDialog(this,"Geben Sie eine URL ein:");
+					urlForm.setHref("http://" + s);
+					repaint();
+			}
+		}
 	}
 
 	@Override
-	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
+	public void mouseClicked(MouseEvent e) {		
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
-	/**
-	 * 
-	 */
-	@Override
-	public void mousePressed(MouseEvent e) {
-		int button = e.getButton();
-		startPoint = e.getPoint();
-	}
-
+	
 	/**
 	 * Rechteck und Kreis
 	 */
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		int mausButton = e.getButton();
-		Rectangle r = calcRect();
+		Rectangle r = calcRechteckKreis();
 		Form f = new Form (r.x, r.y, r.width, r.height);
 		
 		if (mausButton == MouseEvent.BUTTON1 && something != auswahl && something != mehreck) {
@@ -370,22 +364,21 @@ MouseMotionListener {
 			f.setRatioY((getHeight() + 0.0) / r.y);
 			f.setC(globalColor);
 			vec.add(f);
-			repaint();
-			
+			repaint();			
 		}
 		currentForm = null;
 		startPoint = null;
 		endPoint = null;
 	}
 
-	private Rectangle calcRect() {
+	private Rectangle calcRechteckKreis() {
 		Rectangle r = new Rectangle();
 
 		if (endPoint != null && startPoint != null) {
 			int width = endPoint.x - startPoint.x;
 			int height = endPoint.y - startPoint.y;
 			r = new Rectangle(startPoint.x, startPoint.y, width, height);
-			r = korrekturRect(r);
+			r = korrekturRechteckKreis(r);
 		}
 		return r;
 	}
@@ -394,9 +387,9 @@ MouseMotionListener {
 	 * 
 	 * @param r Objekt vom Typ Rectangle
 	 * 
-	 * @return Objekt vom Typ Rectangle ohne negativ Werte
+	 * @return Objekt vom Typ Rectangle ohne negative Werte
 	 */
-	private Rectangle korrekturRect(Rectangle r) {
+	private Rectangle korrekturRechteckKreis(Rectangle r) {
 		if (r != null) {
 			if (r.width < 0) {
 				r.width = -r.width;
@@ -416,6 +409,30 @@ MouseMotionListener {
 			setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 		} else {
 			setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
+		}	
+	}
+
+	/**
+	 * Bild Einlesen.
+	 * Außerdem findet hier die Umwandlung des Path statt
+	 * Backslash wird zu Slash geändert
+	 */
+	public void openPicture() {
+		JFileChooser fileChooser = new JFileChooser();
+		if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+			try {
+				File file = fileChooser.getSelectedFile();
+				bild = ImageIO.read(file);
+				String path = file.getPath();
+				String pathSlash = path.replace('\\', '/');
+				String pathSlashPlusFile = "file:/" + pathSlash;			
+				start = "<img usemap=\"#hiddekuddi\" src=\"" + pathSlashPlusFile + "\" width=\"" + bild.getWidth() + "\" height=\"" + bild.getHeight()+"\">";
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			repaint();
 		}
 		
 	}

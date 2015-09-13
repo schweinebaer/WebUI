@@ -2,7 +2,7 @@ package imageMap;
 
 /**
  * Main-Frame Klasse
- * Container für Bildschirmausgabe und Interaktionen
+ * Bildschirmausgabe und Interaktionen
  * 
  * @author Benedikt Breitschopf
  * 
@@ -26,9 +26,12 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
 
 @SuppressWarnings("serial")
@@ -64,12 +67,17 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 	private Zeichenfläche zeichenfläche = new Zeichenfläche(this);
 	private static JTextArea htmlcode = new JTextArea(10, 20);
 	
+	//Instant VIew
+	private static JTextPane instantView = new JTextPane();
+	private static String htmlCodePure ="";
 	
-
+	
+	
+	
 	/**
 	 * Konstruktor
 	 * 
-	 * @param title String als Titel.
+	 * @param title String als Titel
 	 * 
 	 * @throws HeadlessException Exception-Handler
 	 */
@@ -82,11 +90,11 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 		createMenuBar();
 		createToolBar();
 		createSwitchBar();
-		
+		addWindowListener(this);	
 	}
 	
 	/**
-	 * Erstellt klassische Menü Bar mit Datei und Hilfe
+	 * Erstellt klassische Menü Bar mit Datei und Hilfe als Auswahlfeld
 	 */
 	private void createMenuBar() {
 		menuBar.add(dateiMenu);
@@ -97,7 +105,6 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 		dateiMenu.add(openImageMap);
 		dateiMenu.add(openPicture);
 		dateiMenu.add(quit);
-		
 		hilfeMenu.add(aboutImageMap);
 		
 		//Action Listener
@@ -125,8 +132,8 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 	 */
 	private void createToolBar() {
 		ButtonGroup buttonGroup = new ButtonGroup();
+		
 		buttonGroup.add(auswahlButton);
-		auswahlButton.setSelected(true);
 		buttonGroup.add(rechteckButton);
 		buttonGroup.add(kreisButton);
 		buttonGroup.add(mehreckButton);
@@ -152,8 +159,16 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 	}
 	
 	private void createSwitchBar() {
-		switchbar.addTab("Bildbearbeitung", null, zeichenfläche, "Bild bearbeiten");
+		//Zeichenfläche Tab
+		switchbar.addTab("Zeichenfläche", null, zeichenfläche, "Bild bearbeiten");
+		
+		//HTML Code Tab
 		switchbar.addTab("HTML-TAG", null, htmlcode, "HTML Code anzeigen");
+		
+
+		//instantView.setText("<html><head></head><body><h1>HAAAAAAAAAAAAALO</h1></body></html");
+		switchbar.addTab("Instant View", null, instantView, "Instant Viewer Anzeigen");
+		
 		add(switchbar);
 	}
 
@@ -161,7 +176,7 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 	/**
 	 * pixelStandort Koordinaten Ermittlung
 	 * 
-	 * @param location Es wird ein Objekt von Typ Location erzeugt
+	 * @param location 
 	 */
 	public void setMousePixel(String location) {
 		pixelStandpunkt.setText(location);
@@ -297,9 +312,10 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 			zeichenfläche.doSomething(Zeichenfläche.mehreck);
 		}
 		
-		
-		
-		
+		if (src == openPicture) {
+			zeichenfläche.openPicture();		
+		}
+				
 	}
 	
 	public static void main(String[] args) {
@@ -310,8 +326,32 @@ public class Main extends JFrame implements ActionListener, WindowListener,
 	}
 
 	public static void setHtmlTextArea(String s) {
-		htmlcode.setText(s);
+		htmlCodePure = s;
 		
+		instantView.setEditable(false);
+		instantView.setOpaque(false);
+		
+		instantView.addHyperlinkListener(new HyperlinkListener() {
+              
+			@Override
+              public void hyperlinkUpdate(HyperlinkEvent hle) {
+                  if (HyperlinkEvent.EventType.ACTIVATED.equals(hle.getEventType())) {
+                      System.out.println(hle.getURL());
+                      Desktop desktop = Desktop.getDesktop();
+                      try {
+                          desktop.browse(hle.getURL().toURI());
+                      } catch (Exception ex) {
+                          ex.printStackTrace();
+                      }
+                  }
+              }
+          });
+		instantView.setContentType("text/html");
+		instantView.setText(htmlCodePure);
+		//String st = "<html><head></head><body><h1>teest</h1><img src=\"file:/C:/Users/Benedikt/Pictures/avatar.jpg\"/></body></html>";
+		//instantView.setText(st);
+			
+		htmlcode.setText(s);
 	}
 
 }
